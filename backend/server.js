@@ -1,11 +1,12 @@
 const express = require('express');
+const authRoutes = require('./routes/auth');
+const adminRoutes = require('./routes/admin');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const db = require('./config/db');
-const authRoutes = require('./routes/auth');
 const app = express();
 
 app.use(helmet());
@@ -39,6 +40,10 @@ app.get('/test-db', async (req, res) => {
   }
 });
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
+app.get('/hello', (req, res) => {
+  res.send('HELLO WORKING');
+});
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, '0.0.0.0', () => {
