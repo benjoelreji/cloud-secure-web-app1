@@ -12,6 +12,7 @@ function Register() {
         {
           email,
           password,
+          role: "admin",
         }
       );
 

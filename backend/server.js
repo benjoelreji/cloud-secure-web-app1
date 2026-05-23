@@ -7,27 +7,32 @@ const JWT_SECRET = "mysecretkey";
 const User = mongoose.model(
   "User",
   new mongoose.Schema({
-    email: String,
-    password: String,
-  })
+  email: String,
+  password: String,
+  role: {
+    type: String,
+    default: "user",
+  },
+})
 );
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect("mongodb://127.0.0.1:27017/secureapp")
+mongoose.connect("mongodb://mongodb:27017/secureapp")
 .then(() => console.log("MongoDB Connected"))
 .catch((err) => console.log(err));
 
 
 app.post("/register", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
       email,
       password: hashedPassword,
+      role: role || "user",
     });
 
     await newUser.save();
@@ -83,6 +88,31 @@ app.post("/login", async (req, res) => {
 
     res.status(500).json({
       message: "Login Failed",
+    });
+  }
+});
+app.get("/users", async (req, res) => {
+  try {
+    const users = await User.find();
+
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to fetch users",
+    });
+  }
+});
+
+app.delete("/delete-user/:id", async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+
+    res.json({
+      message: "User Deleted",
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Delete Failed",
     });
   }
 });
