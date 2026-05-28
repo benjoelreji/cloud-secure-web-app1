@@ -6,26 +6,44 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const loginUser = async () => {
-    try {
-      const res = await axios.post(
-        "http://13.233.101.36:5000/login",
-        {
-          email,
-          password,
-        }
-      );
+const loginUser = async () => {
+  try {
 
-     localStorage.setItem("token", res.data.token);
+    const res = await axios.post(
+      "https://secureportalben.duckdns.org/api/login",
+      {
+        email,
+        password,
+      }
+    );
 
-     alert(res.data.message);
+    if (res.data.message === "Login Successful") {
 
-     navigate("/dashboard");
-    } catch (err) {
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("role", res.data.role);
+
+      alert("Login Successful");
+
+      if (res.data.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
+
+    } else {
+      alert("Invalid Login");
+    }
+
+  } catch (err) {
+
+    if (err.response && err.response.data.message) {
+      alert(err.response.data.message);
+    } else {
       alert("Login Failed");
     }
-  };
 
+  }
+};
   return (
      <div className="container">
     <div className="form-box">

@@ -4,6 +4,9 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const JWT_SECRET = "mysecretkey";
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const rateLimit = require('express-rate-limit');
 const User = mongoose.model(
   "User",
   new mongoose.Schema({
@@ -16,80 +19,70 @@ const User = mongoose.model(
 })
 );
 const app = express();
-
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100
+});
 app.use(cors());
 app.use(express.json());
+app.use(helmet());
+app.use(limiter);
 
-mongoose.connect("mongodb://mongodb:27017/secureapp")
+mongoose.connect(
+"mongodb+srv://admin:Admin123@cluster0.mom8xuq.mongodb.net/test?retryWrites=true&w=majority"
+)
 .then(() => console.log("MongoDB Connected"))
 .catch((err) => console.log(err));
-
-
+// REGISTER
 app.post("/register", async (req, res) => {
   try {
     const { email, password, role } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
+
     const newUser = new User({
       email,
-      password: hashedPassword,
-      role: role || "user",
+      password,
+      role,
     });
 
     await newUser.save();
 
     res.json({
-      message: "User Registered Successfully",
+      message: "Registration Successful",
     });
 
   } catch (err) {
     console.log(err);
-
     res.status(500).json({
       message: "Registration Failed",
     });
   }
 });
+// LOGIN
+
 app.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+  const { email, password } = req.body;
 
-    if (!user) {
-      return res.status(400).json({
-        message: "User Not Found",
-      });
-    }
+  const user = await User.findOne({ email, password });
 
-    const isMatch = await bcrypt.compare(
-      password,
-      user.password
-    );
-
-    if (!isMatch) {
-      return res.status(400).json({
-        message: "Invalid Password",
-      });
-    }
-
-    const token = jwt.sign(
-      { email: user.email },
-      JWT_SECRET,
-      { expiresIn: "1h" }
-    );
+  if (user) {
 
     res.json({
       message: "Login Successful",
-      token,
+      role: user.role,
+      token: "sampletoken"
     });
 
-  } catch (err) {
-    console.log(err);
+  } else {
 
-    res.status(500).json({
-      message: "Login Failed",
+    res.json({
+      message: "Invalid Login"
     });
+
   }
+
 });
 app.get("/users", async (req, res) => {
   try {

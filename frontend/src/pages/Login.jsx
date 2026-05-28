@@ -14,7 +14,7 @@ function Login() {
     try {
 
       const res = await axios.post(
-        "http://13.233.101.36:5000/login",
+        "https://secureportalben.duckdns.org/api/login",
         {
           email,
           password
