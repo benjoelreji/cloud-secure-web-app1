@@ -109,6 +109,9 @@ app.delete("/delete-user/:id", async (req, res) => {
     });
   }
 });
+app.get("/health", (req, res) => {
+  res.json({ status: "Server Running" });
+});
 app.listen(5000, "0.0.0.0", () => {
   console.log("Server Running on Port 5000");
 });
